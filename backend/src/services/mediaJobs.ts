@@ -79,7 +79,20 @@ async function fetchCompletedVideo(baseUrl: string, resultUrl: string): Promise<
       { headers: authHeaders({ Accept: 'video/mp4' }) },
       120_000
     )
-    if (response.ok) return Buffer.from(await response.arrayBuffer())
+    if (response.ok) {
+      // The endpoint may return raw MP4 bytes or a JSON envelope carrying the
+      // video as base64 (e.g. {"format":"mp4","video":"<base64>"}).
+      const contentType = response.headers.get('content-type') || ''
+      if (!contentType.includes('application/json')) {
+        return Buffer.from(await response.arrayBuffer())
+      }
+      const payload = (await response.json()) as Record<string, unknown>
+      const encoded = [payload.video_base64, payload.video, payload.data, payload.output].find(
+        (value): value is string => typeof value === 'string' && value.length > 0
+      )
+      if (!encoded) throw new Error('Video result JSON did not contain video data')
+      return Buffer.from(encoded.replace(/^data:[^,]+,/, ''), 'base64')
+    }
     lastStatus = response.status
     if (response.status !== 404) break
     await new Promise((resolve) => setTimeout(resolve, POLL_MS))
@@ -169,6 +182,11 @@ async function submitVideoJob(id: string, input: CreateVideoJobInput): Promise<B
     })
     return pollProviderJob(id, endpoint, data.status_url, data.result_url)
   }
+  // Some deployments answer synchronously with an inline base64 video.
+  const inline = [(data as any).video_base64, (data as any).video].find(
+    (value): value is string => typeof value === 'string' && value.length > 0
+  )
+  if (inline) return Buffer.from(inline.replace(/^data:[^,]+,/, ''), 'base64')
   throw new Error('Video provider returned an unsupported response')
 }
 
