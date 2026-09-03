@@ -36,6 +36,8 @@ import adminRoutes from './routes/admin'
 import { oauthRouter, mailRouter } from './routes/oauth'
 import billingRoutes, { stripeWebhook } from './routes/billing'
 import mediaRoutes from './routes/media'
+import developerRoutes from './routes/developer'
+import v1Routes from './routes/v1'
 import { validateEnv } from './middleware/envValidation'
 import { rateLimiter } from './middleware/rateLimiter'
 import { errorLogger } from './middleware/errorLogger'
@@ -101,6 +103,10 @@ app.use('/api/account', accountRoutes)
 app.use('/api/admin', adminRoutes)
 app.use('/api/billing', billingRoutes)
 app.use('/api/media', mediaRoutes)
+app.use('/api/developer', developerRoutes)
+// Public developer API. Deliberately NOT behind the global /api IP rate limiter —
+// it enforces its own per-key, per-plan limits in middleware/apiAuth.
+app.use('/v1', v1Routes)
 
 // Root route
 app.get('/', (req, res) => {

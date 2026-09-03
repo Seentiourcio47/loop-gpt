@@ -30,6 +30,14 @@ export function priceForPlan(plan: string): string | null {
   return null
 }
 
+/** Map a developer-API plan id to its configured Stripe price id. */
+export function priceForApiPlan(plan: string): string | null {
+  if (plan === 'developer') return process.env.STRIPE_PRICE_API_DEVELOPER || null
+  if (plan === 'growth') return process.env.STRIPE_PRICE_API_GROWTH || null
+  if (plan === 'scale') return process.env.STRIPE_PRICE_API_SCALE || null
+  return null
+}
+
 export function publicConfig() {
   return {
     enabled: stripeEnabled(),
@@ -38,5 +46,12 @@ export function publicConfig() {
       pro: !!process.env.STRIPE_PRICE_PRO,
       gold: !!process.env.STRIPE_PRICE_GOLD,
     },
+    apiPlans: {
+      developer: !!process.env.STRIPE_PRICE_API_DEVELOPER,
+      growth: !!process.env.STRIPE_PRICE_API_GROWTH,
+      scale: !!process.env.STRIPE_PRICE_API_SCALE,
+    },
+    // Prepaid top-ups use ad-hoc amounts, so they only need the secret key.
+    topUps: stripeEnabled(),
   }
 }

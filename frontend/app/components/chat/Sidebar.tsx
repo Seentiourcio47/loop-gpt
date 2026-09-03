@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import {
   Plus, PanelLeft, Search, MessageSquare, Edit2, Trash2,
-  Settings, CreditCard, ShieldCheck, LogOut, ChevronDown, Sparkles,
+  Settings, CreditCard, ShieldCheck, LogOut, ChevronDown, Sparkles, KeyRound,
 } from 'lucide-react'
 import Link from 'next/link'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -184,6 +184,12 @@ export default function Sidebar({
                   icon={CreditCard}
                   label="Account & billing"
                   href="/account"
+                  onClick={() => setShowUserMenu(false)}
+                />
+                <MenuItem
+                  icon={KeyRound}
+                  label="API keys"
+                  href="/developers"
                   onClick={() => setShowUserMenu(false)}
                 />
                 {user?.role === 'admin' && (

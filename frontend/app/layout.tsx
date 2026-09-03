@@ -7,9 +7,35 @@ import Analytics from './components/Analytics'
 
 const inter = Inter({ subsets: ['latin'] })
 
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://loop-gpt.cyou'
+const TITLE = 'Loop GPT — The agentic AI chat portal'
+const DESCRIPTION =
+  'Deep research, vision, image and video generation, MCP connectors and a live Agent Computer — plus an OpenAI-compatible API for developers.'
+
 export const metadata: Metadata = {
-  title: 'Loop GPT - AI Chat Assistant',
-  description: 'A modern ChatGPT-like interface',
+  metadataBase: new URL(SITE_URL),
+  title: { default: TITLE, template: '%s · Loop GPT' },
+  description: DESCRIPTION,
+  applicationName: 'Loop GPT',
+  keywords: [
+    'AI chat', 'agentic AI', 'LLM API', 'image generation API', 'video generation API',
+    'OpenAI-compatible API', 'deep research', 'MCP',
+  ],
+  authors: [{ name: 'Loop GPT' }],
+  openGraph: {
+    type: 'website',
+    url: SITE_URL,
+    siteName: 'Loop GPT',
+    title: TITLE,
+    description: DESCRIPTION,
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: TITLE,
+    description: DESCRIPTION,
+  },
+  robots: { index: true, follow: true },
+  icons: { icon: '/favicon.svg', shortcut: '/favicon.svg', apple: '/favicon.svg' },
 }
 
 // viewport-fit=cover exposes the real iOS safe-area insets (notch/status bar +

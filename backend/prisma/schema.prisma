@@ -43,14 +43,79 @@ model User {
   messagesTotal    Int      @default(0)
   lastActiveAt     DateTime @default(now())
 
+  // ---- Developer API platform ----
+  // Prepaid balance in micro-USD (1_000_000 = $1) so token costs stay exact
+  // integers. Credits never expire; top-ups add, usage debits.
+  apiBalanceMicros BigInt   @default(0)
+  /// null | 'developer' | 'growth' | 'scale' — monthly plan granting a usage discount.
+  apiPlan          String?
+  apiSubId         String?
+  apiPlanRenewsAt  DateTime?
+  /// Whether the one-time free preview credit has been granted.
+  apiPreviewGranted Boolean @default(false)
+
   redemptions   VoucherRedemption[]
   usageEvents   UsageEvent[]
   payments      Payment[]
   tokens        Token[]
   mediaJobs     MediaJob[]
+  apiKeys       ApiKey[]
+  apiUsage      ApiUsage[]
+  apiTopUps     ApiTopUp[]
 
   @@index([role])
   @@index([plan])
+}
+
+/// A developer API key. The raw secret (`sk-loop-…`) is shown once at creation and
+/// only its sha256 hash is stored; `prefix` keeps a masked display value.
+model ApiKey {
+  id         String    @id @default(cuid())
+  userId     String
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name       String    @default("Default key")
+  keyHash    String    @unique
+  prefix     String // e.g. "sk-loop-a1b2c3" for display
+  revoked    Boolean   @default(false)
+  lastUsedAt DateTime?
+  createdAt  DateTime  @default(now())
+
+  usage ApiUsage[]
+
+  @@index([userId])
+  @@index([keyHash])
+}
+
+/// One row per billable developer API request.
+model ApiUsage {
+  id         String   @id @default(cuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  apiKeyId   String?
+  apiKey     ApiKey?  @relation(fields: [apiKeyId], references: [id], onDelete: SetNull)
+  kind       String // 'chat' | 'image' | 'video'
+  model      String   @default("")
+  tokensIn   Int      @default(0)
+  tokensOut  Int      @default(0)
+  units      Int      @default(0) // images or videos produced
+  costMicros BigInt   @default(0) // charged amount in micro-USD (after discount)
+  createdAt  DateTime @default(now())
+
+  @@index([userId, createdAt])
+  @@index([apiKeyId, createdAt])
+}
+
+/// Prepaid balance top-ups (Stripe payment-mode checkout, voucher, or admin grant).
+model ApiTopUp {
+  id            String   @id @default(cuid())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  amountMicros  BigInt
+  source        String   @default("stripe") // 'stripe' | 'voucher' | 'admin' | 'preview' | 'plan'
+  reference     String?
+  createdAt     DateTime @default(now())
+
+  @@index([userId, createdAt])
 }
 
 /// Short-lived tokens for email verification and password reset.

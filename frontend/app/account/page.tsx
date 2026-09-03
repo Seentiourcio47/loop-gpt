@@ -162,6 +162,34 @@ export default function AccountPage() {
             </div>
           )}
 
+          {/* Gold upgrade — shown to Pro users who can still go higher */}
+          {acct && !acct.unlimited && acct.plan === 'pro' && (
+            <div className="glass rounded-2xl p-5 flex items-center justify-between mt-4">
+              <div>
+                <div className="text-slate-100 font-medium">Go Gold</div>
+                <div className="text-xs text-slate-500">5,000 messages + 500 images per day, priority video queue.</div>
+              </div>
+              {billing?.enabled && billing.plans.gold ? (
+                <button onClick={() => upgrade('gold')} disabled={checkingOut} className="px-4 py-2 rounded-lg text-white bg-gradient-to-r from-amber-500 to-orange-500 hover:opacity-90 disabled:opacity-50 transition text-sm font-medium flex items-center gap-2">
+                  {checkingOut ? <Loader2 size={15} className="animate-spin" /> : 'Upgrade to Gold'}
+                </button>
+              ) : (
+                <Link href="/#pricing" className="px-4 py-2 rounded-lg text-white bg-gradient-to-r from-amber-500 to-orange-500 hover:opacity-90 transition text-sm font-medium">See plans</Link>
+              )}
+            </div>
+          )}
+
+          {/* Developer API */}
+          <div className="glass rounded-2xl p-5 flex items-center justify-between mt-4">
+            <div>
+              <div className="text-slate-100 font-medium">Developer API</div>
+              <div className="text-xs text-slate-500">Build on our chat, image and video models. $1 free credit.</div>
+            </div>
+            <Link href="/developers" className="px-4 py-2 rounded-lg glass hover:bg-white/[0.06] transition text-sm font-medium text-slate-200">
+              API keys
+            </Link>
+          </div>
+
           {acct && (
             <button onClick={() => { clearAuth(); location.href = '/login' }} className="mt-8 text-xs text-slate-500 hover:text-rose-400">Sign out</button>
           )}

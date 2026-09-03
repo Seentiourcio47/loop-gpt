@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { motion } from 'framer-motion'
 import {
   Sparkles, Bot, Search, Image as ImageIcon, FileText, Cpu, Cable, Blocks,
-  Check, ArrowRight, Wrench, Eye,
+  Check, ArrowRight, Wrench, Eye, Code2,
 } from 'lucide-react'
 
 const FEATURES = [
@@ -27,6 +27,28 @@ const PLANS = [
     name: 'Pro', price: '$15', period: '/mo', cta: 'Go Pro', href: '/signup?plan=pro', highlight: true,
     features: ['High daily limits', 'All tools + deep research', 'Vision + unlimited docs', 'MCP, connectors, skills, builders', 'Priority (warm) model', 'No image watermark'],
   },
+  {
+    name: 'Gold', price: '$39', period: '/mo', cta: 'Go Gold', href: '/signup?plan=gold', highlight: false,
+    features: ['5,000 credits/day', '500 images/day', 'Video generation with priority queue', 'Everything in Pro', 'Longest context windows', 'Priority support'],
+  },
+]
+
+const API_PLANS = [
+  {
+    name: 'Pay as you go', price: '$0', period: 'no subscription',
+    features: ['$2.00 / 1M input tokens', '$2.00 / 1M output tokens', '$0.05 per image', '$0.40 per 5s video', '20 req/min', 'Prepaid credit, never expires'],
+    highlight: false,
+  },
+  {
+    name: 'Developer', price: '$15', period: '/mo',
+    features: ['5% off all usage', '60 requests/min', 'Unlimited API keys', 'OpenAI-compatible /v1', 'Usage dashboard', 'Email support'],
+    highlight: true,
+  },
+  {
+    name: 'Scale', price: '$150', period: '/mo',
+    features: ['15% off all usage', '600 requests/min', '$150 credit included monthly', 'Priority render queue', 'Higher concurrency', 'Priority support'],
+    highlight: false,
+  },
 ]
 
 export default function Landing() {
@@ -43,6 +65,7 @@ export default function Landing() {
         <div className="flex items-center gap-3 text-sm">
           <a href="#features" className="text-slate-500 hover:text-slate-200 hidden sm:block transition">Features</a>
           <a href="#pricing" className="text-slate-500 hover:text-slate-200 hidden sm:block transition">Pricing</a>
+          <Link href="/developers" className="text-slate-500 hover:text-slate-200 hidden sm:block transition">Developers</Link>
           <Link href="/login" className="text-slate-400 hover:text-slate-100 transition">Log in</Link>
           <Link href="/signup" className="px-3 py-1.5 rounded-lg text-white bg-[#c96442] hover:bg-[#b5593a] transition text-[13px] font-medium">
             Sign up
@@ -102,10 +125,10 @@ export default function Landing() {
       </section>
 
       {/* Pricing */}
-      <section id="pricing" className="max-w-4xl mx-auto px-5 py-16">
+      <section id="pricing" className="max-w-5xl mx-auto px-5 py-16">
         <h2 className="text-3xl font-semibold text-center mb-2 text-slate-100">Simple pricing</h2>
         <p className="text-slate-500 text-center mb-10">Start free. Upgrade when you need more.</p>
-        <div className="grid sm:grid-cols-2 gap-5">
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
           {PLANS.map((p) => (
             <div
               key={p.name}
@@ -148,6 +171,66 @@ export default function Landing() {
         </p>
       </section>
 
+      {/* Developer API */}
+      <section id="api" className="max-w-5xl mx-auto px-5 py-16">
+        <div className="text-center mb-10">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full glass text-[12px] text-slate-400 mb-4">
+            <Code2 size={13} className="text-[#c96442]" /> For developers
+          </div>
+          <h2 className="text-3xl font-semibold mb-2 text-slate-100">Build on our API</h2>
+          <p className="text-slate-500 max-w-2xl mx-auto">
+            One OpenAI-compatible endpoint for chat, image and video models — priced per token and cheaper than the
+            alternatives. Change one line, keep your SDK.
+          </p>
+        </div>
+
+        <div className="glass rounded-2xl p-5 mb-8 max-w-2xl mx-auto">
+          <pre className="text-[12px] text-slate-300 overflow-x-auto"><code>{`const client = new OpenAI({
+  apiKey: 'sk-loop-…',
+  baseURL: 'https://api.loop-gpt.cyou/v1',
+})`}</code></pre>
+        </div>
+
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+          {API_PLANS.map((p) => (
+            <div key={p.name} className={`rounded-2xl p-6 ${p.highlight ? 'glass-strong accent-ring' : 'glass'}`}>
+              <div className="flex items-center justify-between mb-3">
+                <span className="font-semibold text-lg text-slate-100">{p.name}</span>
+                {p.highlight && (
+                  <span className="text-[11px] px-2.5 py-0.5 rounded-full bg-[#c96442]/15 text-[#c96442] border border-[#c96442]/25 font-medium">
+                    Popular
+                  </span>
+                )}
+              </div>
+              <div className="mb-5">
+                <span className="text-4xl font-semibold text-white">{p.price}</span>
+                <span className="text-slate-500 ml-1">{p.period}</span>
+              </div>
+              <ul className="space-y-2 mb-6">
+                {p.features.map((f) => (
+                  <li key={f} className="flex items-start gap-2 text-[13px] text-slate-300">
+                    <Check size={15} className="text-emerald-400/80 mt-0.5 shrink-0" />{f}
+                  </li>
+                ))}
+              </ul>
+              <Link
+                href="/developers"
+                className={`block text-center py-2.5 rounded-xl text-[14px] font-medium transition ${
+                  p.highlight
+                    ? 'text-white bg-[#c96442] hover:bg-[#b5593a] shadow-[0_2px_12px_rgba(201,100,66,0.22)]'
+                    : 'glass hover:border-white/15 hover:bg-white/[0.06] text-slate-200'
+                }`}
+              >
+                Get an API key
+              </Link>
+            </div>
+          ))}
+        </div>
+        <p className="text-center text-[12px] text-slate-600 mt-6">
+          $1 of free credit on your first key — no card required. Credits never expire.
+        </p>
+      </section>
+
       {/* CTA */}
       <section className="max-w-4xl mx-auto px-5 py-16 text-center">
         <div className="glass-strong rounded-3xl p-10">
@@ -173,6 +256,7 @@ export default function Landing() {
           <div className="flex items-center gap-4">
             <Link href="/signup" className="hover:text-slate-300 transition">Get started</Link>
             <a href="#pricing" className="hover:text-slate-300 transition">Pricing</a>
+            <Link href="/developers" className="hover:text-slate-300 transition">Developers</Link>
             <Link href="/login" className="hover:text-slate-300 transition">Log in</Link>
           </div>
           <span className="text-slate-600">© {new Date().getFullYear()} Loop GPT</span>
