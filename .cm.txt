@@ -1,0 +1,9 @@
+fix(v1): retry image endpoint through scale-from-zero cold starts
+
+The dedicated HF image endpoint scales to zero and answers 503 for ~90s
+while a GPU replica boots, so the first API image request after an idle
+period failed with a spurious 502. Retry on 503/502/504 and transport
+errors for up to four minutes, and accept the alternate JSON envelopes
+the endpoint can return. Usage is still only charged on success.
+
+Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>

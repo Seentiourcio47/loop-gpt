@@ -230,6 +230,63 @@ router.post('/chat/completions', authenticateApiKey, requireBalance, async (req:
   }
 })
 
+/**
+ * Call the dedicated HF image endpoint once.
+ *
+ * The endpoint scales to zero, so the first request after an idle period comes
+ * back 503 while a GPU replica boots (~90s). Retry through that rather than
+ * surfacing a spurious failure to API consumers.
+ */
+async function generateOne(endpoint: string, prompt: string): Promise<string> {
+  const deadline = Date.now() + 240_000
+  let lastError = 'image endpoint unavailable'
+
+  while (Date.now() < deadline) {
+    let upstream: Response
+    try {
+      upstream = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${process.env.HF_TOKEN || process.env.HF_API_TOKEN || ''}`,
+          'Content-Type': 'application/json',
+          Accept: 'image/png',
+        },
+        body: JSON.stringify({
+          inputs: prompt,
+          parameters: { num_inference_steps: 28, guidance_scale: 3.5 },
+        }),
+        signal: AbortSignal.timeout(300_000),
+      })
+    } catch (e: any) {
+      lastError = e?.message || 'image endpoint request failed'
+      await new Promise((r) => setTimeout(r, 8_000))
+      continue
+    }
+
+    // 503/502/504 mean the endpoint is still waking up — keep waiting.
+    if (upstream.status === 503 || upstream.status === 502 || upstream.status === 504) {
+      lastError = `image endpoint warming up (HTTP ${upstream.status})`
+      await new Promise((r) => setTimeout(r, 8_000))
+      continue
+    }
+    if (!upstream.ok) {
+      throw new Error(`image endpoint returned HTTP ${upstream.status}: ${(await upstream.text()).slice(0, 200)}`)
+    }
+
+    const contentType = upstream.headers.get('content-type') || ''
+    if (contentType.includes('application/json')) {
+      const payload: any = await upstream.json()
+      const b64 =
+        payload?.image || payload?.[0]?.image || payload?.images?.[0]?.b64_json || payload?.data?.[0]?.b64_json
+      if (b64) return String(b64)
+      throw new Error('image endpoint returned JSON without image data')
+    }
+    return Buffer.from(await upstream.arrayBuffer()).toString('base64')
+  }
+
+  throw new Error(lastError)
+}
+
 const imageSchema = z.object({
   prompt: z.string().trim().min(1).max(2_000),
   model: z.string().optional(),
@@ -261,31 +318,7 @@ router.post('/images/generations', authenticateApiKey, requireBalance, async (re
   try {
     const images: { b64: string }[] = []
     for (let i = 0; i < n; i++) {
-      const upstream = await fetch(endpoint, {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${process.env.HF_TOKEN || ''}`,
-          'Content-Type': 'application/json',
-          Accept: 'image/png',
-        },
-        body: JSON.stringify({
-          inputs: prompt,
-          parameters: { num_inference_steps: 28, guidance_scale: 3.5 },
-        }),
-        signal: AbortSignal.timeout(300_000),
-      })
-      if (!upstream.ok) {
-        throw new Error(`image endpoint returned HTTP ${upstream.status}`)
-      }
-      const contentType = upstream.headers.get('content-type') || ''
-      if (contentType.includes('application/json')) {
-        const payload: any = await upstream.json()
-        const b64 = payload?.image || payload?.images?.[0] || payload?.data?.[0]?.b64_json
-        if (!b64) throw new Error('image endpoint returned no image data')
-        images.push({ b64: String(b64) })
-      } else {
-        images.push({ b64: Buffer.from(await upstream.arrayBuffer()).toString('base64') })
-      }
+      images.push({ b64: await generateOne(endpoint, prompt) })
     }
 
     const cost = await chargeUsage({
