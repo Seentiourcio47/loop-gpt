@@ -30,6 +30,41 @@ export function getProviderSettings(): ProviderSettings {
   }
 }
 
+// ---- Chat model tiers -------------------------------------------------------
+
+export interface ChatModelOption {
+  id: string
+  tier: 'standard' | 'large'
+  label: string
+  description: string
+  contextTokens: number
+}
+
+/** Fetch the selectable chat models. Public endpoint, no auth required. */
+export async function fetchChatModels(): Promise<ChatModelOption[]> {
+  try {
+    const r = await fetch(`${API_URL}/api/models/catalog`)
+    if (!r.ok) return []
+    const data = await r.json()
+    return Array.isArray(data?.models) ? data.models : []
+  } catch {
+    return []
+  }
+}
+
+/** Currently selected chat model id (empty string = server default). */
+export function getChatModel(): string {
+  if (typeof window === 'undefined') return ''
+  return localStorage.getItem('aiModel') || ''
+}
+
+export function setChatModel(id: string) {
+  if (typeof window === 'undefined') return
+  if (id) localStorage.setItem('aiModel', id)
+  else localStorage.removeItem('aiModel')
+  window.dispatchEvent(new CustomEvent('loop:model-changed', { detail: id }))
+}
+
 // ---- Auth / account helpers -------------------------------------------------
 
 export interface StoredUser {

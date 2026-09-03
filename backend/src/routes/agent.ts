@@ -12,6 +12,7 @@ import { toolRegistry } from '../agent/toolRegistry'
 import { initSSE, sendEvent, endSSE, makeEmitter } from '../agent/streaming'
 import type { AgentEvent, ChatMessage, ContentPart, ToolContext } from '../agent/types'
 import type { AIProvider } from '../services/aiProviders'
+import { resolveChatTarget } from '../services/chatModels'
 import { getActiveSkills, buildSkillPrompt, getAllSkills, createUserSkill, deleteUserSkill } from '../agent/skills/skillLoader'
 import { customToolRegistry } from '../agent/customTools'
 import { sanitizeMetadata, detectExtractionAttempt } from '../agent/guardrails'
@@ -66,8 +67,18 @@ function fileToDataUri(imagePath: string): string | null {
 
 function resolveProvider(body: any): { provider: AIProvider; model?: string; apiKey?: string; baseUrl?: string } {
   const provider = (body.provider as AIProvider) || (process.env.DEFAULT_PROVIDER as AIProvider) || 'huggingface'
-  const model = body.model || process.env.DEFAULT_MODEL || undefined
   const apiKey = body.apiKey || undefined
+
+  // Hugging Face is our own hosted backend: the model must resolve to one of the
+  // configured tiers so a client can never point our credentials at an arbitrary
+  // host. A caller-supplied baseUrl is only honoured when they also bring their
+  // own key (bring-your-own-provider), which is what `apiKey` signals.
+  if (provider === 'huggingface' && !apiKey) {
+    const target = resolveChatTarget(body.model || process.env.DEFAULT_MODEL)
+    return { provider, model: target.model, apiKey: undefined, baseUrl: target.baseUrl }
+  }
+
+  const model = body.model || process.env.DEFAULT_MODEL || undefined
   const baseUrl = body.baseUrl || undefined
   return { provider, model, apiKey, baseUrl }
 }

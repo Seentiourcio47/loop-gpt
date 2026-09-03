@@ -58,8 +58,19 @@ interface Pricing {
     perVideo: number
   }
   plans: ApiPlan[]
+  models?: PricingModel[]
   payAsYouGo: { rateLimitPerMin: number; previewCreditUsd: number }
   topUps: number[]
+}
+
+interface PricingModel {
+  id: string
+  tier: 'standard' | 'large'
+  label: string
+  description: string
+  contextTokens: number
+  inputPerMillionTokens: number
+  outputPerMillionTokens: number
 }
 
 interface Overview {
@@ -536,6 +547,55 @@ export default function DevelopersPage() {
                   without a plan.
                 </p>
               </div>
+
+              {rates.models && rates.models.length > 1 && (
+                <div className="glass rounded-2xl p-5 space-y-4">
+                  <div>
+                    <h2 className="text-sm font-semibold text-slate-200">Chat models</h2>
+                    <p className="text-xs text-slate-500 mt-1">
+                      Pass the model id as <code className="px-1 bg-white/5 rounded text-slate-300">model</code> in
+                      any request. Defaults to <code className="px-1 bg-white/5 rounded text-slate-300">loop-chat</code>.
+                    </p>
+                  </div>
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="text-left text-[11px] uppercase tracking-wide text-slate-500 border-b border-slate-800">
+                          <th className="py-2 pr-4 font-medium">Model</th>
+                          <th className="py-2 pr-4 font-medium">Context</th>
+                          <th className="py-2 pr-4 font-medium">Input / 1M</th>
+                          <th className="py-2 font-medium">Output / 1M</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {rates.models.map((m) => (
+                          <tr key={m.id} className="border-b border-slate-800/60 last:border-0">
+                            <td className="py-3 pr-4">
+                              <div className="flex items-center gap-2">
+                                <span className="text-slate-100">{m.label}</span>
+                                {m.tier === 'large' && (
+                                  <span className="text-[10px] px-1.5 py-0.5 rounded bg-[#c96442]/15 text-[#c96442] border border-[#c96442]/25">
+                                    Flagship
+                                  </span>
+                                )}
+                              </div>
+                              <code className="text-[11px] text-slate-500">{m.id}</code>
+                              <div className="text-[11px] text-slate-500 mt-0.5">{m.description}</div>
+                            </td>
+                            <td className="py-3 pr-4 text-slate-300 whitespace-nowrap">
+                              {Math.round(m.contextTokens / 1000)}K
+                            </td>
+                            <td className="py-3 pr-4 text-slate-300 whitespace-nowrap">
+                              {usd(m.inputPerMillionTokens)}
+                            </td>
+                            <td className="py-3 text-slate-300 whitespace-nowrap">{usd(m.outputPerMillionTokens)}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
 
               <div className="grid gap-4 md:grid-cols-3">
                 {rates.plans.map((p) => (

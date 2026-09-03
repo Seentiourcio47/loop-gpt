@@ -1,6 +1,7 @@
 import express from 'express'
 import { authenticateToken } from './auth'
 import { multiModelRouter } from '../services/multiModelRouter'
+import { chatModelCatalog } from '../services/chatModels'
 
 const router = express.Router()
 
@@ -11,6 +12,12 @@ const optionalAuth = (req: express.Request, res: express.Response, next: express
   }
   authenticateToken(req, res, next)
 }
+
+// Chat model tiers available to the UI picker. Public: the catalogue exposes
+// only branded labels, never the upstream model identity (see agent/guardrails).
+router.get('/catalog', (_req, res) => {
+  res.json({ models: chatModelCatalog() })
+})
 
 // Get current model selection
 router.get('/selection', optionalAuth, (req, res) => {

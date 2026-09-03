@@ -6,6 +6,7 @@ import {
   Paperclip, Image as ImageIcon, Camera, Plug, Video, Search, MessageSquare,
 } from 'lucide-react'
 import type { AgentMode } from '../../lib/api'
+import ModelPicker from './ModelPicker'
 
 interface SlashCommand {
   cmd: string
@@ -183,6 +184,9 @@ export default function Composer({
               </div>
             )}
           </div>
+
+          {/* Model tier picker */}
+          <ModelPicker />
 
           {/* Send / Stop */}
           <div className="ml-auto">

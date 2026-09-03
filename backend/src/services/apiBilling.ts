@@ -8,6 +8,7 @@
  * $3/1M input and $3/1M output at time of writing).
  */
 import { prisma, hasDb } from './prisma'
+import { chatModelCatalog } from './chatModels'
 
 /** 1 USD expressed in micro-USD. */
 export const MICROS_PER_USD = 1_000_000
@@ -15,8 +16,24 @@ export const MICROS_PER_USD = 1_000_000
 /** Per-million-token rates in micro-USD. */
 export const RATE_CHAT_INPUT_PER_MTOK = 2 * MICROS_PER_USD // $2.00 / 1M tokens
 export const RATE_CHAT_OUTPUT_PER_MTOK = 2 * MICROS_PER_USD // $2.00 / 1M tokens
+/**
+ * Large-tier rates. abliteration.ai charges $5/$5 per 1M for its large model,
+ * so $3/$3 keeps the "cheaper on every axis" positioning.
+ */
+export const RATE_CHAT_LARGE_INPUT_PER_MTOK = 3 * MICROS_PER_USD // $3.00 / 1M tokens
+export const RATE_CHAT_LARGE_OUTPUT_PER_MTOK = 3 * MICROS_PER_USD // $3.00 / 1M tokens
 /** Cached input is billed at 10% of the standard input rate. */
 export const CACHED_INPUT_DISCOUNT = 0.1
+
+/** Per-tier chat rates, keyed by the tiers in `services/chatModels.ts`. */
+export const CHAT_TIER_RATES: Record<string, { input: number; output: number }> = {
+  standard: { input: RATE_CHAT_INPUT_PER_MTOK, output: RATE_CHAT_OUTPUT_PER_MTOK },
+  large: { input: RATE_CHAT_LARGE_INPUT_PER_MTOK, output: RATE_CHAT_LARGE_OUTPUT_PER_MTOK },
+}
+
+export function chatRatesFor(tier?: string | null) {
+  return CHAT_TIER_RATES[tier || 'standard'] || CHAT_TIER_RATES.standard
+}
 
 /** Flat per-unit rates in micro-USD. */
 export const RATE_IMAGE = 50_000 // $0.05 per image
@@ -100,6 +117,8 @@ export interface CostInput {
   tokensOut?: number
   cachedTokensIn?: number
   units?: number
+  /** Chat model tier — selects the per-token rate. Defaults to `standard`. */
+  tier?: string | null
 }
 
 /**
@@ -109,14 +128,15 @@ export function grossCostMicros(input: CostInput): number {
   if (input.kind === 'image') return RATE_IMAGE * Math.max(1, input.units || 1)
   if (input.kind === 'video') return RATE_VIDEO * Math.max(1, input.units || 1)
 
+  const rates = chatRatesFor(input.tier)
   const cached = Math.max(0, input.cachedTokensIn || 0)
   const fresh = Math.max(0, (input.tokensIn || 0) - cached)
   const out = Math.max(0, input.tokensOut || 0)
 
   const inputCost =
-    (fresh * RATE_CHAT_INPUT_PER_MTOK) / 1_000_000 +
-    (cached * RATE_CHAT_INPUT_PER_MTOK * CACHED_INPUT_DISCOUNT) / 1_000_000
-  const outputCost = (out * RATE_CHAT_OUTPUT_PER_MTOK) / 1_000_000
+    (fresh * rates.input) / 1_000_000 +
+    (cached * rates.input * CACHED_INPUT_DISCOUNT) / 1_000_000
+  const outputCost = (out * rates.output) / 1_000_000
   return Math.ceil(inputCost + outputCost)
 }
 
@@ -198,6 +218,8 @@ export async function chargeUsage(params: {
   cachedTokensIn?: number
   units?: number
   planId?: string | null
+  /** Chat model tier — selects the per-token rate. Defaults to `standard`. */
+  tier?: string | null
 }): Promise<number> {
   const gross = grossCostMicros(params)
   const net = netCostMicros(gross, params.planId)
@@ -232,6 +254,7 @@ export async function chargeUsage(params: {
 
 /** Public pricing document served to the frontend and docs page. */
 export function pricingConfig() {
+  const catalog = chatModelCatalog()
   return {
     currency: 'USD',
     rates: {
@@ -241,6 +264,19 @@ export function pricingConfig() {
       perImage: RATE_IMAGE / MICROS_PER_USD,
       perVideo: RATE_VIDEO / MICROS_PER_USD,
     },
+    /** Per-model rate card. `chat*PerMillionTokens` above mirrors the standard tier. */
+    models: catalog.map((m) => {
+      const r = chatRatesFor(m.tier)
+      return {
+        id: m.id,
+        tier: m.tier,
+        label: m.label,
+        description: m.description,
+        contextTokens: m.contextTokens,
+        inputPerMillionTokens: r.input / MICROS_PER_USD,
+        outputPerMillionTokens: r.output / MICROS_PER_USD,
+      }
+    }),
     plans: Object.values(API_PLANS).map((p) => ({
       id: p.id,
       name: p.name,

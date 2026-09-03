@@ -11,6 +11,7 @@ import express from 'express'
 import { z } from 'zod'
 import { createClient } from '../agent/llmClient'
 import { getHFModel } from '../services/aiProviders'
+import { resolveChatTarget, chatModelCatalog } from '../services/chatModels'
 import { saveArtifact } from '../agent/artifacts'
 import { createVideoJob } from '../services/mediaJobs'
 import { prisma, hasDb } from '../services/prisma'
@@ -38,12 +39,15 @@ function defaultModel(): string {
 /** Public catalogue. `id` values are what callers pass as `model`. */
 function modelCatalog() {
   const chat = defaultModel()
-  return [
-    { id: 'loop-chat', object: 'model', owned_by: 'loop-gpt', kind: 'chat', upstream: chat },
-    { id: chat, object: 'model', owned_by: 'loop-gpt', kind: 'chat', upstream: chat },
-    { id: 'loop-image', object: 'model', owned_by: 'loop-gpt', kind: 'image', upstream: 'FLUX.1-dev' },
-    { id: 'loop-video', object: 'model', owned_by: 'loop-gpt', kind: 'video', upstream: 'skyreels-v2-df-14b' },
-  ]
+  const entries: Array<{ id: string; object: string; owned_by: string; kind: string; upstream: string }> = []
+  for (const m of chatModelCatalog()) {
+    entries.push({ id: m.id, object: 'model', owned_by: 'loop-gpt', kind: 'chat', upstream: m.label })
+  }
+  // Keep the raw upstream chat model addressable for backwards compatibility.
+  entries.push({ id: chat, object: 'model', owned_by: 'loop-gpt', kind: 'chat', upstream: chat })
+  entries.push({ id: 'loop-image', object: 'model', owned_by: 'loop-gpt', kind: 'image', upstream: 'FLUX.1-dev' })
+  entries.push({ id: 'loop-video', object: 'model', owned_by: 'loop-gpt', kind: 'video', upstream: 'skyreels-v2-df-14b' })
+  return entries
 }
 
 /** GET /v1/models — catalogue for SDK `client.models.list()`. */
@@ -94,15 +98,16 @@ router.post('/chat/completions', authenticateApiKey, requireBalance, async (req:
   }
   const ctx = req.api!
   const body = parsed.data
-  const model = defaultModel()
   const requestedModel = body.model || 'loop-chat'
+  const target = resolveChatTarget(requestedModel)
+  const model = target.model
   const messages = body.messages.map((m) => ({
     role: m.role,
     content: typeof m.content === 'string' ? m.content : JSON.stringify(m.content ?? ''),
   })) as any[]
 
   const promptText = messages.map((m) => String(m.content || '')).join('\n')
-  const client = createClient('huggingface')
+  const client = createClient('huggingface', undefined, target.baseUrl)
   const id = `chatcmpl-${Date.now().toString(36)}`
   const created = Math.floor(Date.now() / 1000)
 
@@ -160,6 +165,7 @@ router.post('/chat/completions', authenticateApiKey, requireBalance, async (req:
         tokensIn,
         tokensOut,
         planId: ctx.plan,
+        tier: target.tier,
       }).catch(() => {})
 
       res.write(
@@ -196,6 +202,7 @@ router.post('/chat/completions', authenticateApiKey, requireBalance, async (req:
       tokensIn,
       tokensOut,
       planId: ctx.plan,
+      tier: target.tier,
     }).catch(() => 0)
 
     res.setHeader('X-Loop-Cost-USD', (cost / MICROS_PER_USD).toFixed(6))
