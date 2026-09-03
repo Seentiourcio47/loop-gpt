@@ -30,20 +30,47 @@ function init() {
   })
 }
 
-export const emailEnabled = () => !!process.env.SMTP_HOST
+export const emailEnabled = () => !!(process.env.RESEND_API_KEY || process.env.SMTP_HOST)
+
+/**
+ * Send over Resend's HTTPS API. Preferred over SMTP because most PaaS hosts
+ * (Railway included) block outbound port 587/465.
+ */
+async function sendViaResend(to: string, subject: string, html: string, text: string): Promise<boolean> {
+  const key = process.env.RESEND_API_KEY
+  if (!key) return false
+  try {
+    const r = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ from: FROM(), to: [to], subject, html, text }),
+      signal: AbortSignal.timeout(15_000),
+    })
+    if (!r.ok) {
+      console.error('[email] resend failed:', r.status, (await r.text()).slice(0, 300))
+      return false
+    }
+    return true
+  } catch (e: any) {
+    console.error('[email] resend error:', e?.message)
+    return false
+  }
+}
 
 const FROM = () => process.env.MAIL_FROM || 'Loop GPT <no-reply@loop-gpt.cyou>'
 const APP = () => process.env.FRONTEND_URL || 'https://loop-gpt.cyou'
 
 /** Send an email. Never throws — returns false on failure so callers can ignore. */
 export async function sendMail(to: string, subject: string, html: string, text?: string): Promise<boolean> {
+  const body = text || html.replace(/<[^>]+>/g, ' ')
+  if (process.env.RESEND_API_KEY) return sendViaResend(to, subject, html, body)
   init()
   if (!transporter) {
     console.log(`[email] (no SMTP) would send to ${to}: ${subject}`)
     return false
   }
   try {
-    await transporter.sendMail({ from: FROM(), to, subject, html, text: text || html.replace(/<[^>]+>/g, ' ') })
+    await transporter.sendMail({ from: FROM(), to, subject, html, text: body })
     return true
   } catch (e: any) {
     console.error('[email] send failed:', e?.message)
