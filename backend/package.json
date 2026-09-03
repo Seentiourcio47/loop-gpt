@@ -10,6 +10,7 @@
     "migrate": "prisma migrate dev",
     "generate": "prisma generate",
     "studio": "prisma studio",
+    "make-admin": "tsx scripts/make-admin.ts",
     "test": "vitest run"
   },
   "dependencies": {
