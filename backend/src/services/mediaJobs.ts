@@ -1,9 +1,10 @@
 import { saveArtifact } from '../agent/artifacts'
 import { hasDb, prisma } from './prisma'
 
-const DEFAULT_MAX_WAIT_MS = 600_000
+const DEFAULT_MAX_WAIT_MS = 1_800_000
 const INITIAL_POLL_MS = 1_000
 const POLL_MS = 5_000
+const MAX_CONSECUTIVE_MISSES = 20
 
 export interface CreateVideoJobInput {
   prompt: string
@@ -35,7 +36,9 @@ function maxWaitMs(): number {
 function asProgress(value: unknown, fallback: number): number {
   if (typeof value === 'number' && Number.isFinite(value)) return Math.max(0, Math.min(100, Math.round(value)))
   if (typeof value === 'string') {
-    const match = value.match(/(\d{1,3})/)
+    // Only trust an explicit percentage; provider status strings such as
+    // "Generating 257 frames (10.7s) at 540P..." contain unrelated numbers.
+    const match = value.match(/(\d{1,3})\s*%/)
     if (match) return Math.max(0, Math.min(100, Number(match[1])))
   }
   return fallback
@@ -68,13 +71,20 @@ async function ensureNotCancelled(id: string): Promise<boolean> {
 }
 
 async function fetchCompletedVideo(baseUrl: string, resultUrl: string): Promise<Buffer> {
-  const response = await providerRequest(
-    resolveProviderUrl(baseUrl, resultUrl),
-    { headers: authHeaders({ Accept: 'video/mp4' }) },
-    120_000
-  )
-  if (!response.ok) throw new Error(`Video result returned HTTP ${response.status}`)
-  return Buffer.from(await response.arrayBuffer())
+  // Same replica caveat as polling: retry a few times on 404 before failing.
+  let lastStatus = 0
+  for (let attempt = 0; attempt < 6; attempt++) {
+    const response = await providerRequest(
+      resolveProviderUrl(baseUrl, resultUrl),
+      { headers: authHeaders({ Accept: 'video/mp4' }) },
+      120_000
+    )
+    if (response.ok) return Buffer.from(await response.arrayBuffer())
+    lastStatus = response.status
+    if (response.status !== 404) break
+    await new Promise((resolve) => setTimeout(resolve, POLL_MS))
+  }
+  throw new Error(`Video result returned HTTP ${lastStatus}`)
 }
 
 async function pollProviderJob(
@@ -85,6 +95,7 @@ async function pollProviderJob(
 ): Promise<Buffer | null> {
   const startedAt = Date.now()
   let attempt = 0
+  let consecutiveMisses = 0
 
   while (Date.now() - startedAt < maxWaitMs()) {
     if (!(await ensureNotCancelled(id))) return null
@@ -96,8 +107,16 @@ async function pollProviderJob(
       { headers: authHeaders() },
       30_000
     )
-    if (response.status === 404 && attempt <= 5) continue
+    // The provider keeps its job registry in memory per replica, so a poll that
+    // lands on a different replica (or on a cold one) legitimately 404s while the
+    // job is still running. Only give up after many *consecutive* misses.
+    if (response.status === 404) {
+      consecutiveMisses++
+      if (consecutiveMisses <= MAX_CONSECUTIVE_MISSES) continue
+      throw new Error('Video status returned HTTP 404')
+    }
     if (!response.ok) throw new Error(`Video status returned HTTP ${response.status}`)
+    consecutiveMisses = 0
 
     const status = (await response.json()) as ProviderJobResponse
     const normalized = String(status.status || '').toLowerCase()
