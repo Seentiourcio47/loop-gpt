@@ -10,8 +10,10 @@ COPY mcp-package.json /app/loop-mcp/package.json
 USER root
 RUN npm install --omit=dev --no-audit --no-fund --prefix /app/loop-mcp
 COPY media-server.mjs /app/loop-mcp/media-server.mjs
+COPY selftest.mjs /app/loop-mcp/selftest.mjs
 RUN chown -R node:node /app/loop-mcp
 USER node
 
 EXPOSE 3080
-CMD ["node", "api/server/index.js"]
+# Boot: selftest output goes to container stdout (visible in deploy logs); app starts immediately
+CMD ["sh", "-c", "(node /app/loop-mcp/selftest.mjs &) ; exec node api/server/index.js"]
