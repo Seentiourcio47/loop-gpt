@@ -1,0 +1,40 @@
+﻿# Loop GPT spike configuration â€” LibreChat over our metering proxy (/v1)
+version: 1.2.4
+cache: true
+
+interface:
+  artifacts: true
+
+endpoints:
+  custom:
+    - name: "Loop GPT Standard"
+      apiKey: "sk-loop-00125e79ada202ab537b8a751922f21bc6f39153cc36c571"
+      baseURL: "https://api.loop-gpt.cyou/v1"
+      models:
+        default: [loop-chat]
+        list: [loop-chat]
+      titleConvo: true
+      titleModel: loop-chat
+      summarize: false
+      iconURL: "https://loop-gpt.cyou/favicon.ico"
+
+    - name: "Loop GPT Large"
+      apiKey: "sk-loop-00125e79ada202ab537b8a751922f21bc6f39153cc36c571"
+      baseURL: "https://api.loop-gpt.cyou/v1"
+      models:
+        default: [loop-chat-large]
+        list: [loop-chat-large]
+      titleConvo: true
+      titleModel: loop-chat-large
+      summarize: false
+      iconURL: "https://loop-gpt.cyou/favicon.ico"
+
+# Media generation tools backed by our HuggingFace endpoints.
+# Spawned as a local stdio MCP server; env inherited from container.
+mcpServers:
+  loop-media:
+    type: stdio
+    command: node
+    args: [/app/loop-mcp/media-server.mjs]
+    timeout: 600000
+    initTimeout: 60000
