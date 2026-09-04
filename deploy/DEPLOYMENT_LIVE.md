@@ -243,5 +243,15 @@ nslookup app.loop-gpt.cyou
 
 ---
 
+## Addendum 2026-09-04 — LibreChat phase
+- LibreChat deployed on Railway (svc `librechat` :3080, mongo volume, rag svc pgvector). Demo domain librechat-production-6215.up.railway.app.
+- Custom endpoints `LoopGPTStd`/`LoopGPTLarge` speak to backend `/v1` (metering proven, $1.00→$0.999806 on probe keys).
+- `/v1/embeddings` shipped (`loop-embed`, HF TEI MiniLM-384, metered); librechat-rag boots `EMBEDDINGS_PROVIDER=openai` against backend `/v1`.
+- Agent runs fixed: LC container cannot reach `backend.railway.internal:3001` (private-network anomaly; RAG internal works) → yaml baseURL = backend public Railway URL (`https://backend-production-4d0d6.up.railway.app/v1`). Verified agents stream text with + without MCP tools (bare & tooled runs both return verbatim test tokens).
+- Backend Dockerfile: CMD hardened (`sh ./docker-entrypoint.sh`) + entrypoint LF-normalized (CRLF killed exec).
+- Known quirk: `railway up` backend build context must be wrapped as `<tmp>/backend/` (rootDirectory=/backend meta).
+
+---
+
 **Last Updated**: 2026-08-20 03:31 UTC  
 **Deployment Engineer**: Automated Deployment System
