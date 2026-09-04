@@ -47,6 +47,7 @@ function modelCatalog() {
   entries.push({ id: chat, object: 'model', owned_by: 'loop-gpt', kind: 'chat', upstream: chat })
   entries.push({ id: 'loop-image', object: 'model', owned_by: 'loop-gpt', kind: 'image', upstream: 'FLUX.1-dev' })
   entries.push({ id: 'loop-video', object: 'model', owned_by: 'loop-gpt', kind: 'video', upstream: 'skyreels-v2-df-14b' })
+  entries.push({ id: 'loop-embed', object: 'model', owned_by: 'loop-gpt', kind: 'embedding', upstream: EMBED_UPSTREAM })
   return entries
 }
 
@@ -234,6 +235,100 @@ router.post('/chat/completions', authenticateApiKey, requireBalance, async (req:
       'api_error',
       'upstream_error'
     )
+  }
+})
+
+/** Upstream model served via HF serverless TEI. Override with HF_EMBED_MODEL. */
+const EMBED_UPSTREAM = process.env.HF_EMBED_MODEL || 'sentence-transformers/all-MiniLM-L6-v2'
+
+const embeddingsSchema = z.object({
+  input: z.union([z.string().min(1), z.array(z.string().min(1)).min(1)]),
+  model: z.string().optional(),
+})
+
+/** Mean-pool token-level matrices into one vector; pass through pooled ones. */
+function toEmbeddingVector(row: unknown): number[] {
+  if (!Array.isArray(row) || !row.length) return []
+  if (typeof row[0] === 'number') return row as number[]
+  const matrix = row.filter((r) => Array.isArray(r)) as number[][]
+  if (!matrix.length || typeof matrix[0][0] !== 'number') return []
+  const dim = matrix[0].length
+  const out = new Array<number>(dim).fill(0)
+  for (const vec of matrix) for (let i = 0; i < dim; i++) out[i] += Number(vec[i]) || 0
+  return out.map((v) => v / matrix.length)
+}
+
+/**
+ * POST /v1/embeddings — OpenAI-compatible embeddings backed by HF serverless
+ * TEI. Metered through `chargeUsage` at the standard chat rate (embeddings
+ * cost orders of magnitude less than chat; a dedicated rate can be carved
+ * out later without changing this surface).
+ */
+router.post('/embeddings', authenticateApiKey, requireBalance, async (req: ApiRequest, res) => {
+  const parsed = embeddingsSchema.safeParse(req.body)
+  if (!parsed.success) {
+    return apiError(
+      res,
+      400,
+      parsed.error.issues[0]?.message || 'Invalid request body.',
+      'invalid_request_error',
+      'invalid_body'
+    )
+  }
+  const ctx = req.api!
+  const inputs = Array.isArray(parsed.data.input) ? parsed.data.input : [parsed.data.input]
+  const requested = parsed.data.model || 'loop-embed'
+  const created = Math.floor(Date.now() / 1000)
+
+  try {
+    const upstream = await fetch(
+      `https://router.huggingface.co/hf-inference/models/${EMBED_UPSTREAM}/pipeline/feature-extraction`,
+      {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${process.env.HF_TOKEN || process.env.HF_API_TOKEN || ''}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ inputs, options: { wait_for_model: true } }),
+        signal: AbortSignal.timeout(60_000),
+      }
+    )
+    if (!upstream.ok) {
+      const detail = (await upstream.text()).slice(0, 300)
+      throw new Error(`embeddings upstream returned HTTP ${upstream.status}: ${detail}`)
+    }
+    const raw: unknown = await upstream.json()
+    if (!Array.isArray(raw)) throw new Error('embeddings upstream returned unexpected payload')
+
+    // Shapes observed from TEI: [float] (single), [ [float…] ] (pooled batch),
+    // [ [ [float…]…] ] (token-level, needs mean-pooling).
+    const first = (raw as unknown[])[0]
+    const vectors = Array.isArray(first)
+      ? (raw as unknown[][]).map(toEmbeddingVector)
+      : [toEmbeddingVector(raw)]
+    const tokens = inputs.reduce((sum, s) => sum + estimateTokens(s), 0)
+
+    await chargeUsage({
+      userId: ctx.userId,
+      apiKeyId: ctx.apiKeyId,
+      kind: 'chat',
+      model: requested,
+      tokensIn: tokens,
+      tokensOut: 0,
+      planId: ctx.plan,
+      tier: 'standard',
+    }).catch(() => {})
+
+    return res.json({
+      object: 'list',
+      created,
+      model: requested,
+      data: vectors.map((embedding, index) => ({ object: 'embedding', index, embedding })),
+      usage: { prompt_tokens: tokens, total_tokens: tokens },
+    })
+  } catch (error: any) {
+    console.error('[v1/embeddings] error:', error?.message)
+    return apiError(res, 502, error?.message || 'Upstream embeddings error.', 'api_error', 'upstream_error')
   }
 })
 
