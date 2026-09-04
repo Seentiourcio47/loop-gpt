@@ -60,7 +60,7 @@ curl https://api.loop-gpt.cyou/health
 ### HuggingFace Endpoints Configured
 | Service | Endpoint URL | Status |
 |---------|-------------|--------|
-| Chat (Standard) | https://v29tkr3b9tnclvnb.us-east-1.aws.endpoints.huggingface.cloud | ✅ |
+| Chat (Standard — Qwen3.8-27B-Uncensored-Cyber, 256K ctx) | https://y54ycbowmtsfq58i.us-east-1.aws.endpoints.huggingface.cloud | ✅ |
 | Chat (Large — GLM-5.3-Flash FP8, 256K ctx) | https://vu3pi203abtenqrc.us-east-2.aws.endpoints.huggingface.cloud | ✅ |
 | Image | https://it1i1rf992g05u29.us-east-1.aws.endpoints.huggingface.cloud | ✅ |
 | Video | https://s4u9zdezthdwes8o.us-east-1.aws.endpoints.huggingface.cloud | ✅ |
@@ -73,7 +73,8 @@ the `HF_LARGE_*` variables below — unset them to hide the tier.
 ```env
 DATABASE_URL=postgresql://loopgpt:LoopGpt_Secure_2026!@localhost:5432/loopgpt
 JWT_SECRET=loop-gpt-jwt-secret-CHANGE-IN-PRODUCTION
-HF_ENDPOINT_URL=https://v29tkr3b9tnclvnb.us-east-1.aws.endpoints.huggingface.cloud
+HF_ENDPOINT_URL=https://y54ycbowmtsfq58i.us-east-1.aws.endpoints.huggingface.cloud
+HF_MODEL=Qwen3.8-27B-Uncensored-Cyber
 HF_TOKEN=<HF_TOKEN>
 HF_LARGE_ENDPOINT_URL=https://vu3pi203abtenqrc.us-east-2.aws.endpoints.huggingface.cloud
 HF_LARGE_MODEL=/repository
