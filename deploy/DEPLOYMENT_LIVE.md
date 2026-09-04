@@ -2,60 +2,69 @@
 
 ## ✅ DEPLOYMENT COMPLETE - ALL SYSTEMS OPERATIONAL
 
-**Deployment Date**: 2026-08-20  
-**Status**: LIVE  
+**Deployment Date**: 2026-08-20 (initial) · **Updated**: 2026-09-04 (Railway + branded-domain cutover)
+**Status**: LIVE
 **Domain**: loop-gpt.cyou
 
 ---
 
-## 🌐 Domain Configuration
+## 🌐 Domain Architecture (as of 2026-09-04)
 
-| Subdomain | Points To | Status | Purpose |
-|-----------|-----------|--------|---------|
-| `api.loop-gpt.cyou` | Cloudflare Tunnel → localhost:3001 | ✅ ACTIVE | Backend API |
-| `app.loop-gpt.cyou` | Cloudflare Tunnel → localhost:3000 | ✅ ACTIVE | Frontend UI |
-| `loop-gpt.cyou` | Railway (z8n20ytb.up.railway.app) | ⚠️ Existing | Main domain |
+Both services run on **Railway** (project `loop-gpt`, `Seentiourcio47/loop-gpt`, tracked on `main`):
 
-### DNS Records (Verified via Cloudflare API)
-```
-CNAME api.loop-gpt.cyou → bc0a90c0-e120-44ba-99ea-15a6d138619b.cfargotunnel.com
-CNAME app.loop-gpt.cyou → bc0a90c0-e120-44ba-99ea-15a6d138619b.cfargotunnel.com
-```
+| Hostname | Path | Status | Purpose |
+|-----------|------|--------|---------|
+| `loop-gpt.cyou` | Cloudflare (proxied) → Railway frontend | ✅ LIVE | Frontend UI (apex) |
+| `api.loop-gpt.cyou` | Cloudflare Tunnel bridge → Railway backend | ✅ LIVE | Backend API |
+| `app.loop-gpt.cyou` | Cloudflare Tunnel bridge → Railway frontend | ✅ LIVE | Frontend (legacy alias) |
 
----
+### How `api.loop-gpt.cyou` works
 
-## 🔌 Cloudflare Tunnel Configuration
+DNS keeps the historical Aug-20 tunnel CNAMEs (`...cfargotunnel.com`), but the tunnel
+now **bridges to Railway** instead of localhost. Config lives at
+`C:\Users\chris\.cloudflared\loop-gpt-railway.yml`:
 
-**Tunnel ID**: `bc0a90c0-e120-44ba-99ea-15a6d138619b`  
-**Tunnel Name**: `loop-gpt-backend`  
-**Status**: ✅ RUNNING (3 active connections)  
-**Edges Connected**: dfw01, dfw06, dfw07
-
-### Tunnel Routing
 ```yaml
-api.loop-gpt.cyou → http://localhost:3001 (Backend API)
-app.loop-gpt.cyou → http://localhost:3000 (Frontend)
+ingress:
+  - hostname: api.loop-gpt.cyou  -> https://backend-production-4d0d6.up.railway.app
+  - hostname: app.loop-gpt.cyou  -> https://frontend-production-868b.up.railway.app
 ```
 
-### Connector Info
-- **Connector ID**: a863cbed-b7dd-4549-a942-7a3a1dcc1469
-- **Origin IP**: 23.234.105.240
-- **Version**: 2026.7.3
-- **Protocol**: QUIC
+**Durability**: the connector auto-starts at logon via
+`%APPDATA%\Microsoft\Windows\Start Menu\Programs\Startup\start-loopgpt-tunnel.cmd`.
+An always-on alternative (no dependence on this PC): change the Cloudflare CNAME
+`api` → `6nzrbghb.up.railway.app` with **proxy OFF** and re-run
+`deploy\switch-to-branded-domain.ps1`.
+
+### Env vars flipped with the branded cutover (Railway)
+
+- backend: `OAUTH_CALLBACK_BASE=https://api.loop-gpt.cyou`,
+  `PUBLIC_API_URL=https://api.loop-gpt.cyou`,
+  `FRONTEND_URL=https://loop-gpt.cyou`
+- frontend: `NEXT_PUBLIC_API_URL=https://api.loop-gpt.cyou`
+  (baked at build time — the live bundle already serves this)
+
+**OAuth callback registrations** (Google & GitHub consoles):
+```
+https://api.loop-gpt.cyou/api/auth/oauth/google/callback
+https://api.loop-gpt.cyou/api/auth/oauth/github/callback
+```
+
+### Verified live 2026-09-04 (through the branded domain)
+
+- `GET /health` → 200
+- `GET /api/models/catalog` → standard + large tiers
+- CORS preflight from `https://loop-gpt.cyou` → allow-origin OK
+- Full E2E user journey: register → JWT → create conversation → SSE chat
+  stream (standard tier) → `"BRAND-E2E-OK"` reply in 2.8s
+- OAuth start → 302 to Google with `redirect_uri=https://api.loop-gpt.cyou/...`
 
 ---
 
-## 🖥️ Backend Server
+## Historical: original local-tunnel architecture (2026-08-20)
 
-**Location**: Local (to be deployed to VPS: 194.15.36.172)  
-**Port**: 3001  
-**Status**: ✅ RUNNING
-
-### Health Check
-```bash
-curl https://api.loop-gpt.cyou/health
-# Response: {"status":"ok","timestamp":"..."}
-```
+Superseded — kept for reference. Backend/frontend ran on this PC and the tunnel
+ingressed to `localhost:3001` / `localhost:3000`. See git history for the full text.
 
 ### HuggingFace Endpoints Configured
 | Service | Endpoint URL | Status |
