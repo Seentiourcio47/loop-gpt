@@ -28,4 +28,4 @@ RUN chmod +x docker-entrypoint.sh
 RUN mkdir -p uploads data && chown -R node:node /app/uploads /app/data
 USER node
 EXPOSE 3001
-CMD ["./docker-entrypoint.sh"]
+CMD ["sh", "./docker-entrypoint.sh"]
