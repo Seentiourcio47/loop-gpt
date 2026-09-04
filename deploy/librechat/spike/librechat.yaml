@@ -9,7 +9,7 @@ endpoints:
   custom:
     - name: "LoopGPTStd"
       apiKey: "sk-loop-00125e79ada202ab537b8a751922f21bc6f39153cc36c571"
-      baseURL: "http://backend.railway.internal:3001/v1"
+      baseURL: "https://backend-production-4d0d6.up.railway.app/v1"
       models:
         default: [loop-chat]
         list: [loop-chat]
@@ -20,7 +20,7 @@ endpoints:
 
     - name: "LoopGPTLarge"
       apiKey: "sk-loop-00125e79ada202ab537b8a751922f21bc6f39153cc36c571"
-      baseURL: "http://backend.railway.internal:3001/v1"
+      baseURL: "https://backend-production-4d0d6.up.railway.app/v1"
       models:
         default: [loop-chat-large]
         list: [loop-chat-large]
