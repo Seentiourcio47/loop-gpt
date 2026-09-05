@@ -8,7 +8,7 @@ interface:
 endpoints:
   custom:
     - name: "LoopGPTStd"
-      apiKey: "user_provided"
+      apiKey: "sk-loop-00125e79ada202ab537b8a751922f21bc6f39153cc36c571"
       baseURL: "https://backend-production-4d0d6.up.railway.app/v1"
       models:
         default: [loop-chat]
@@ -19,7 +19,7 @@ endpoints:
       iconURL: "https://loop-gpt.cyou/favicon.ico"
 
     - name: "LoopGPTLarge"
-      apiKey: "user_provided"
+      apiKey: "sk-loop-00125e79ada202ab537b8a751922f21bc6f39153cc36c571"
       baseURL: "https://backend-production-4d0d6.up.railway.app/v1"
       models:
         default: [loop-chat-large]
