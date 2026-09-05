@@ -126,8 +126,8 @@ function EmptyState() {
         transition={{ duration: 0.3 }}
         className="space-y-3"
       >
-        <div className="w-10 h-10 rounded-2xl bg-[#c96442]/12 border border-[#c96442]/20 flex items-center justify-center mx-auto">
-          <Sparkles size={18} className="text-[#c96442]" />
+        <div className="w-10 h-10 rounded-2xl bg-[#8b7cf8]/12 border border-[#8b7cf8]/20 flex items-center justify-center mx-auto">
+          <Sparkles size={18} className="text-[#8b7cf8]" />
         </div>
         <h1 className="text-2xl sm:text-[28px] font-semibold tracking-tight text-slate-100">
           How can I help you today?
@@ -272,7 +272,7 @@ function ArtifactCard({ a }: { a: ArtifactRef }) {
       rel="noreferrer"
       className="inline-flex items-center gap-2 px-3 py-2 rounded-xl glass hover:border-white/15 hover:bg-white/[0.06] transition text-[13px]"
     >
-      <FileDown size={14} className="text-[#c96442]" />
+      <FileDown size={14} className="text-[#8b7cf8]" />
       <span className="text-slate-200">{a.name}</span>
       <span className="text-[10px] uppercase text-slate-500">{a.kind}</span>
     </a>

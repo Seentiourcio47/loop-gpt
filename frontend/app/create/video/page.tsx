@@ -138,14 +138,14 @@ export default function CreateVideoPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#111113] text-slate-200">
+    <main className="min-h-screen bg-[#0a0a12] text-slate-200">
       <div className="mx-auto max-w-6xl px-5 py-7 sm:py-10">
         <header className="mb-9 flex items-center justify-between">
           <Link href="/chat" className="inline-flex items-center gap-2 text-sm text-slate-400 transition hover:text-slate-100">
             <ArrowLeft size={16} /> Back to chat
           </Link>
           <div className="flex items-center gap-2 text-sm font-medium text-slate-200">
-            <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#c96442]">
+            <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#8b7cf8]">
               <Sparkles size={14} className="text-white" />
             </span>
             Loop GPT
@@ -153,7 +153,7 @@ export default function CreateVideoPage() {
         </header>
 
         <div className="mb-8 max-w-2xl">
-          <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-[#c96442]/25 bg-[#c96442]/10 px-3 py-1 text-xs font-medium text-[#e6b8a6]">
+          <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-[#8b7cf8]/25 bg-[#8b7cf8]/10 px-3 py-1 text-xs font-medium text-[#e6b8a6]">
             <Clapperboard size={14} /> Text to video
           </div>
           <h1 className="text-3xl font-semibold tracking-tight text-slate-50 sm:text-4xl">Turn an idea into motion.</h1>
@@ -173,7 +173,7 @@ export default function CreateVideoPage() {
                 maxLength={1_000}
                 rows={6}
                 placeholder="A clear subject, setting, action, camera movement, lighting, and mood..."
-                className="w-full resize-y rounded-xl border border-white/[0.09] bg-black/20 px-4 py-3 text-sm leading-relaxed text-slate-100 outline-none transition placeholder:text-slate-600 focus:border-[#c96442]/65 focus:ring-1 focus:ring-[#c96442]/35"
+                className="w-full resize-y rounded-xl border border-white/[0.09] bg-black/20 px-4 py-3 text-sm leading-relaxed text-slate-100 outline-none transition placeholder:text-slate-600 focus:border-[#8b7cf8]/65 focus:ring-1 focus:ring-[#8b7cf8]/35"
               />
               <div className="mt-2 flex justify-between text-xs text-slate-500">
                 <span>Specific visual direction generally produces stronger results.</span>
@@ -191,7 +191,7 @@ export default function CreateVideoPage() {
                         onClick={() => setAspectRatio(ratio)}
                         className={`flex-1 rounded-lg border px-2 py-2 text-xs font-medium transition ${
                           aspectRatio === ratio
-                            ? 'border-[#c96442]/60 bg-[#c96442]/15 text-[#f0c0af]'
+                            ? 'border-[#8b7cf8]/60 bg-[#8b7cf8]/15 text-[#f0c0af]'
                             : 'border-white/[0.08] bg-white/[0.03] text-slate-400 hover:bg-white/[0.06]'
                         }`}
                       >
@@ -210,7 +210,7 @@ export default function CreateVideoPage() {
                         onClick={() => setDurationSeconds(seconds)}
                         className={`flex-1 rounded-lg border px-3 py-2 text-xs font-medium transition ${
                           durationSeconds === seconds
-                            ? 'border-[#c96442]/60 bg-[#c96442]/15 text-[#f0c0af]'
+                            ? 'border-[#8b7cf8]/60 bg-[#8b7cf8]/15 text-[#f0c0af]'
                             : 'border-white/[0.08] bg-white/[0.03] text-slate-400 hover:bg-white/[0.06]'
                         }`}
                       >
@@ -232,7 +232,7 @@ export default function CreateVideoPage() {
                 <button
                   type="submit"
                   disabled={!prompt.trim() || submitting}
-                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#c96442] px-5 py-2.5 text-sm font-medium text-white shadow-[0_2px_16px_rgba(201,100,66,0.25)] transition hover:bg-[#b5593a] disabled:cursor-not-allowed disabled:opacity-50"
+                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#8b7cf8] px-5 py-2.5 text-sm font-medium text-white shadow-[0_2px_16px_rgba(201,100,66,0.25)] transition hover:bg-[#7566f4] disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   {submitting ? <Loader2 size={16} className="animate-spin" /> : <Wand2 size={16} />}
                   {submitting ? 'Starting job…' : 'Generate video'}
@@ -242,7 +242,7 @@ export default function CreateVideoPage() {
           </section>
 
           <aside className="glass rounded-2xl p-5">
-            <h2 className="flex items-center gap-2 text-sm font-medium text-slate-100"><Wand2 size={15} className="text-[#c96442]" /> Prompt starters</h2>
+            <h2 className="flex items-center gap-2 text-sm font-medium text-slate-100"><Wand2 size={15} className="text-[#8b7cf8]" /> Prompt starters</h2>
             <p className="mt-1 text-xs leading-relaxed text-slate-500">Use one as a starting point, then make it your own.</p>
             <div className="mt-4 space-y-2">
               {EXAMPLES.map((example) => (
@@ -292,7 +292,7 @@ export default function CreateVideoPage() {
                       <div className="px-5 text-center text-sm text-rose-300"><XCircle className="mx-auto mb-2" size={20} /> {job.error || 'This video could not be generated.'}</div>
                     ) : (
                       <div className="text-center">
-                        <Loader2 className="mx-auto mb-3 animate-spin text-[#c96442]" size={23} />
+                        <Loader2 className="mx-auto mb-3 animate-spin text-[#8b7cf8]" size={23} />
                         <p className="text-sm text-slate-300">{job.status === 'queued' ? 'Waiting in queue' : 'Rendering your video'}</p>
                         {typeof job.progress === 'number' && <p className="mt-1 text-xs text-slate-500">{Math.round(job.progress)}% complete</p>}
                       </div>

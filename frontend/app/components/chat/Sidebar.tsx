@@ -47,7 +47,7 @@ export default function Sidebar({
     <div className="flex flex-col h-full">
       {/* Header */}
       <div className="px-4 pt-4 pb-3 flex items-center gap-2 shrink-0">
-        <div className="w-7 h-7 rounded-lg bg-[#c96442] flex items-center justify-center shrink-0">
+        <div className="w-7 h-7 rounded-lg bg-[#8b7cf8] flex items-center justify-center shrink-0">
           <Sparkles size={14} className="text-white" />
         </div>
         <span className="font-semibold text-slate-100 text-[15px]">Loop GPT</span>
@@ -63,7 +63,7 @@ export default function Sidebar({
       <div className="px-3 space-y-2 shrink-0">
         <button
           onClick={() => { onSelectConversation(null); onClose() }}
-          className="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl text-sm font-medium text-white bg-[#c96442] hover:bg-[#b5593a] active:bg-[#a34e34] transition"
+          className="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl text-sm font-medium text-white bg-[#8b7cf8] hover:bg-[#7566f4] active:bg-[#5d4ded] transition"
         >
           <Plus size={17} strokeWidth={2.5} /> New session
         </button>
@@ -151,7 +151,7 @@ export default function Sidebar({
             onClick={() => setShowUserMenu((v) => !v)}
             className="w-full flex items-center gap-2.5 px-2 py-2 rounded-lg hover:bg-white/[0.05] transition"
           >
-            <div className="w-7 h-7 rounded-full bg-[#c96442] flex items-center justify-center text-xs font-semibold text-white shrink-0">
+            <div className="w-7 h-7 rounded-full bg-[#8b7cf8] flex items-center justify-center text-xs font-semibold text-white shrink-0">
               {(user?.name?.[0] || user?.email?.[0] || 'U').toUpperCase()}
             </div>
             <div className="min-w-0 flex-1 text-left">
@@ -218,7 +218,7 @@ function MenuItem({
   icon: any; label: string; href?: string; onClick?: () => void; accent?: boolean; danger?: boolean
 }) {
   const cls = `w-full flex items-center gap-2.5 px-3 py-2 hover:bg-white/[0.05] text-left transition text-[13px] ${
-    danger ? 'text-rose-400' : accent ? 'text-[#c96442]' : 'text-slate-200'
+    danger ? 'text-rose-400' : accent ? 'text-[#8b7cf8]' : 'text-slate-200'
   }`
   if (href) {
     return (

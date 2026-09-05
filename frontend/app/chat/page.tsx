@@ -273,7 +273,7 @@ export default function ChatPage() {
   const convTitle = conversations.find((c) => c.id === currentConversationId)?.title
 
   return (
-    <div className="flex h-[100dvh] overflow-hidden text-slate-200 bg-[#111113]">
+    <div className="flex h-[100dvh] overflow-hidden text-slate-200 bg-[#0a0a12]">
       {/* Mobile backdrop */}
       {(sidebarOpen || computerOpen) && !isDesktop && (
         <div
@@ -290,7 +290,7 @@ export default function ChatPage() {
             animate={{ x: 0 }}
             exit={{ x: -280 }}
             transition={{ type: 'spring', stiffness: 380, damping: 34 }}
-            className="fixed lg:relative inset-y-0 left-0 w-[260px] max-w-[82vw] shrink-0 flex flex-col h-full z-40 lg:z-20 pt-[env(safe-area-inset-top)] lg:pt-0 bg-[#0f0f11] border-r border-white/[0.05]"
+            className="fixed lg:relative inset-y-0 left-0 w-[260px] max-w-[82vw] shrink-0 flex flex-col h-full z-40 lg:z-20 pt-[env(safe-area-inset-top)] lg:pt-0 bg-[#0c0c14] border-r border-white/[0.05]"
           >
             <Sidebar
               conversations={conversations}
@@ -310,7 +310,7 @@ export default function ChatPage() {
       {/* ── Center: conversation ─────────────────────────────────────────── */}
       <div className="flex-1 flex flex-col h-full min-w-0 relative pt-[env(safe-area-inset-top)]">
         {/* Header */}
-        <div className="flex items-center gap-2 px-3 sm:px-4 h-12 border-b border-white/[0.05] shrink-0 bg-[#111113]">
+        <div className="flex items-center gap-2 px-3 sm:px-4 h-12 border-b border-white/[0.05] shrink-0 bg-[#0a0a12]">
           {!sidebarOpen && (
             <button
               onClick={() => setSidebarOpen(true)}
@@ -320,7 +320,7 @@ export default function ChatPage() {
             </button>
           )}
           {!sidebarOpen && (
-            <div className="w-6 h-6 rounded-md bg-[#c96442] flex items-center justify-center shrink-0">
+            <div className="w-6 h-6 rounded-md bg-[#8b7cf8] flex items-center justify-center shrink-0">
               <Sparkles size={13} className="text-white" />
             </div>
           )}
@@ -377,7 +377,7 @@ export default function ChatPage() {
         />
 
         {/* Composer */}
-        <div className="border-t border-white/[0.05] px-3 sm:px-4 py-3 sm:py-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] bg-[#111113]">
+        <div className="border-t border-white/[0.05] px-3 sm:px-4 py-3 sm:py-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] bg-[#0a0a12]">
           <div className="max-w-[48rem] mx-auto">
             <Composer
               input={input}

@@ -12,7 +12,7 @@ export default function NotFound() {
         <div className="flex items-center justify-center gap-3 flex-wrap">
           <Link
             href="/chat"
-            className="px-5 py-2.5 rounded-xl text-white bg-[#c96442] hover:bg-[#b5593a] transition text-sm font-medium"
+            className="px-5 py-2.5 rounded-xl text-white bg-[#8b7cf8] hover:bg-[#7566f4] transition text-sm font-medium"
           >
             Go to chat
           </Link>

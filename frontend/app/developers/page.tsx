@@ -574,7 +574,7 @@ export default function DevelopersPage() {
                               <div className="flex items-center gap-2">
                                 <span className="text-slate-100">{m.label}</span>
                                 {m.tier === 'large' && (
-                                  <span className="text-[10px] px-1.5 py-0.5 rounded bg-[#c96442]/15 text-[#c96442] border border-[#c96442]/25">
+                                  <span className="text-[10px] px-1.5 py-0.5 rounded bg-[#8b7cf8]/15 text-[#8b7cf8] border border-[#8b7cf8]/25">
                                     Flagship
                                   </span>
                                 )}

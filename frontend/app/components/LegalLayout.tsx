@@ -21,7 +21,7 @@ export default function LegalLayout({
     <div className="min-h-screen">
       <nav className="max-w-6xl mx-auto flex items-center justify-between px-5 py-4 border-b border-white/[0.05]">
         <Link href="/" className="flex items-center gap-2">
-          <div className="w-7 h-7 rounded-lg bg-[#c96442] flex items-center justify-center">
+          <div className="w-7 h-7 rounded-lg bg-[#8b7cf8] flex items-center justify-center">
             <Sparkles size={14} className="text-white" />
           </div>
           <span className="font-semibold text-slate-100 text-[15px]">Loop GPT</span>

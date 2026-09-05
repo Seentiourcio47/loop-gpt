@@ -9,7 +9,7 @@ interface Props { onClose: () => void; initialTab?: string }
 type Tab = 'model' | 'skills' | 'plugins' | 'builder' | 'mcp' | 'connectors' | 'tools'
 
 const inputCls = 'mt-1 w-full bg-ink-800 border border-white/10 rounded-lg px-3 py-2 text-slate-100 text-sm focus:outline-none focus:accent-ring placeholder-slate-600'
-const btnCls = 'px-3 py-1.5 rounded-lg text-sm text-white bg-[#c96442] hover:bg-[#b5593a] transition'
+const btnCls = 'px-3 py-1.5 rounded-lg text-sm text-white bg-[#8b7cf8] hover:bg-[#7566f4] transition'
 
 export default function SettingsPanel({ onClose, initialTab }: Props) {
   const TABS: Tab[] = ['model', 'skills', 'plugins', 'builder', 'connectors', 'mcp', 'tools']

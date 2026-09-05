@@ -90,7 +90,7 @@ export default function AuthForm({ mode }: { mode: 'login' | 'signup' }) {
     <div className="min-h-screen flex items-center justify-center px-5">
       <div className="w-full max-w-sm">
         <Link href="/" className="flex items-center justify-center gap-2 mb-8">
-          <div className="w-8 h-8 rounded-lg bg-[#c96442] flex items-center justify-center"><Sparkles size={15} className="text-white" /></div>
+          <div className="w-8 h-8 rounded-lg bg-[#8b7cf8] flex items-center justify-center"><Sparkles size={15} className="text-white" /></div>
           <span className="font-semibold text-slate-100 text-lg">Loop GPT</span>
         </Link>
         <div className="glass-strong rounded-2xl p-6 shadow-panel">
@@ -124,15 +124,15 @@ export default function AuthForm({ mode }: { mode: 'login' | 'signup' }) {
             <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Email" className="w-full bg-ink-800 border border-white/10 rounded-lg px-3 py-2.5 text-slate-100 text-sm focus:outline-none focus:accent-ring placeholder-slate-600" />
             <input type="password" required value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Password" className="w-full bg-ink-800 border border-white/10 rounded-lg px-3 py-2.5 text-slate-100 text-sm focus:outline-none focus:accent-ring placeholder-slate-600" />
             {!isSignup && (
-              <div className="text-right -mt-1"><Link href="/forgot" className="text-[12px] text-slate-500 hover:text-[#c96442] transition">Forgot password?</Link></div>
+              <div className="text-right -mt-1"><Link href="/forgot" className="text-[12px] text-slate-500 hover:text-[#8b7cf8] transition">Forgot password?</Link></div>
             )}
             {error && <div className="text-xs text-rose-400 bg-rose-500/10 border border-rose-500/20 rounded-lg px-3 py-2">{error}</div>}
-            <button type="submit" disabled={loading} className="w-full flex items-center justify-center gap-2 py-2.5 rounded-lg text-white bg-[#c96442] hover:bg-[#b5593a] disabled:opacity-40 transition font-medium text-[14px]">
+            <button type="submit" disabled={loading} className="w-full flex items-center justify-center gap-2 py-2.5 rounded-lg text-white bg-[#8b7cf8] hover:bg-[#7566f4] disabled:opacity-40 transition font-medium text-[14px]">
               {loading ? <Loader2 size={15} className="animate-spin" /> : <>{isSignup ? 'Create account' : 'Log in'} <ArrowRight size={15} /></>}
             </button>
           </form>
           <div className="mt-4 text-center text-[13px] text-slate-500">
-            {isSignup ? <>Already have an account? <Link href="/login" className="text-[#c96442] hover:underline">Log in</Link></> : <>New here? <Link href="/signup" className="text-[#c96442] hover:underline">Sign up</Link></>}
+            {isSignup ? <>Already have an account? <Link href="/login" className="text-[#8b7cf8] hover:underline">Log in</Link></> : <>New here? <Link href="/signup" className="text-[#8b7cf8] hover:underline">Sign up</Link></>}
           </div>
         </div>
       </div>

@@ -55,7 +55,7 @@ export default function ModelPicker() {
         aria-expanded={open}
         className="h-8 px-2.5 flex items-center gap-1.5 rounded-lg border border-white/[0.08] text-slate-400 hover:bg-white/[0.05] hover:text-slate-200 text-xs transition"
       >
-        {isLarge ? <Brain size={13} className="text-[#c96442]" /> : <Sparkles size={13} />}
+        {isLarge ? <Brain size={13} className="text-[#8b7cf8]" /> : <Sparkles size={13} />}
         <span className="hidden sm:inline">{isLarge ? 'Large' : 'Standard'}</span>
         <ChevronDown size={12} className="text-slate-600" />
       </button>
@@ -77,11 +77,11 @@ export default function ModelPicker() {
                 onClick={() => choose(m)}
                 className="w-full flex items-start gap-2.5 px-3 py-2.5 text-left hover:bg-white/[0.05] transition"
               >
-                <Icon size={14} className={`mt-0.5 shrink-0 ${m.tier === 'large' ? 'text-[#c96442]' : 'text-slate-400'}`} />
+                <Icon size={14} className={`mt-0.5 shrink-0 ${m.tier === 'large' ? 'text-[#8b7cf8]' : 'text-slate-400'}`} />
                 <span className="min-w-0 flex-1">
                   <span className="flex items-center gap-1.5">
                     <span className="text-sm text-slate-200">{m.label}</span>
-                    {active && <Check size={12} className="text-[#c96442]" />}
+                    {active && <Check size={12} className="text-[#8b7cf8]" />}
                   </span>
                   <span className="block text-[11px] text-slate-500 leading-snug mt-0.5">{m.description}</span>
                   <span className="block text-[10px] text-slate-600 mt-1">

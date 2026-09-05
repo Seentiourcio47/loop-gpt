@@ -204,7 +204,7 @@ export default function Composer({
                 type="submit"
                 disabled={!canSend}
                 title="Send"
-                className="w-9 h-9 flex items-center justify-center rounded-lg text-white bg-[#c96442] disabled:opacity-25 disabled:cursor-not-allowed hover:bg-[#b5593a] active:bg-[#a34e34] transition"
+                className="w-9 h-9 flex items-center justify-center rounded-lg text-white bg-[#8b7cf8] disabled:opacity-25 disabled:cursor-not-allowed hover:bg-[#7566f4] active:bg-[#5d4ded] transition"
               >
                 <Send size={16} />
               </button>
@@ -243,12 +243,12 @@ function ModeItem({
       onClick={onClick}
       className="w-full flex items-center gap-2.5 px-3 py-2.5 hover:bg-white/[0.05] text-left transition"
     >
-      <Icon size={15} className={`shrink-0 ${active ? 'text-[#c96442]' : 'text-slate-500'}`} />
+      <Icon size={15} className={`shrink-0 ${active ? 'text-[#8b7cf8]' : 'text-slate-500'}`} />
       <span className="min-w-0 flex-1">
         <span className="text-[13px] text-slate-200">{label}</span>
         <span className="block text-[12px] text-slate-500">{hint}</span>
       </span>
-      {active && <Check size={13} className="text-[#c96442] shrink-0" />}
+      {active && <Check size={13} className="text-[#8b7cf8] shrink-0" />}
     </button>
   )
 }
