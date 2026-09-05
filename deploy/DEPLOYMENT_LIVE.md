@@ -257,5 +257,24 @@ nslookup app.loop-gpt.cyou
 
 ---
 
+## Branded-domain remediation (2026-09-05)
+
+**Root cause of the "domain not pointed" issue:** `api.`/`app.` CNAMEs pointed at `*.cfargotunnel.com` UNPROXIED (grey). `cfargotunnel.com` resolves globally to a private `fd10::` ULA by design — grey tunnel records are broken for the entire internet. Apex worked only because it is proxied (orange). Additionally the tunnel connector ran on the home PC (site-down-if-laptop-off).
+
+**Done autonomously:**
+- `cf-tunnel` Railway service deployed (deploy/cloudflared/, distroless shell-less image, creds baked — private repo; tunnel creds only permit RUNNING the tunnel; rotate via `cloudflared tunnel token` anytime). Connector linux_amd64 registered 4× (region sin). Home connector killed + Startup task deleted; `cloudflared tunnel info` shows only linux connector. Tunnel ingress now arms `api`, `app`, apex, `www`, AND `chat.loop-gpt.cyou` (LibreChat) — all verified against the live connector.
+- Railway custom domains: `chat.loop-gpt.cyou` → librechat :3080 (claim ACTIVE); `api.loop-gpt.cyou` → backend (verified YES, certificate VALID since Aug, target CNAME `6nzrbghb.up.railway.app`); `app.loop-gpt.cyou` → frontend (new claim, target CNAME `qe9xizva.up.railway.app`). Apex untouched (working).
+
+**Remaining (user, ~2 min in Cloudflare dashboard):**
+| Record | Change to |
+|---|---|
+| `api` | CNAME `6nzrbghb.up.railway.app` (grey ok — cert already VALID) |
+| `app` | CNAME `qe9xizva.up.railway.app` (grey) |
+| `chat` | CNAME `x46wia9t.up.railway.app` (grey) |
+
+Apex stays as-is. Stray record `chat.loop-gpt.cyou.sendrise.online` (wrong-zone artifact of the expired sendrise cert) may be deleted for tidiness. Verify afterwards: `deploy\verify-brand-dns.ps1` (DoH + routing + connector census). Tunnel remains as dead-man switch: if records later prefer the tunnel instead, orange-proxy them (records MUST be proxied for tunnel hostnames).
+
+---
+
 **Last Updated**: 2026-08-20 03:31 UTC  
 **Deployment Engineer**: Automated Deployment System
