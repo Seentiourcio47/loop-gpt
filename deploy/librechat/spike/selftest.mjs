@@ -90,11 +90,41 @@ function rpc(method, params, timeoutMs = 240000) {
   // verified separately via the UI acceptance flow.
   if (magicOk && png.length > 20000) {
     console.log('[selftest] RESULT-PASS image', png.length);
+    await netProbe();
     process.exit(0);
   }
   console.log('[selftest] RESULT-FAIL small/invalid image');
+  await netProbe();
   process.exit(4);
-})().catch((e) => {
+})().catch(async (e) => {
   console.error('[selftest] FATAL', e.message);
+  await netProbe();
   process.exit(1);
 });
+
+/* Railway private-network probe: is backend.railway.internal reachable from
+ * this container at DNS / TCP-connect / HTTP layers? Non-fatal diagnostics. */
+import dnsPromises from 'node:dns/promises';
+
+async function netProbe() {
+  const slog = (...a) => console.log('[netprobe]', ...a);
+  try {
+    const addrs = await dnsPromises.lookup('backend.railway.internal', { all: true });
+    slog('dns', JSON.stringify(addrs));
+  } catch (e) {
+    slog('dns-error', String(e?.code || e?.message || e).slice(0, 160));
+    slog('RESULT-INTERNAL-FAIL');
+    return;
+  }
+  try {
+    const ac = new AbortController();
+    const t = setTimeout(() => ac.abort(), 6000);
+    const res = await fetch('http://backend.railway.internal:3001/v1/pricing', { signal: ac.signal });
+    clearTimeout(t);
+    slog('http', res.status);
+    slog('RESULT-INTERNAL-' + (res.ok ? 'PASS' : 'FAIL'));
+  } catch (e) {
+    slog('http-error', String(e?.cause?.code || e?.message || e).slice(0, 200));
+    slog('RESULT-INTERNAL-FAIL');
+  }
+}
