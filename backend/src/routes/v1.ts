@@ -99,13 +99,28 @@ const IDENTITY_SYSTEM_PROMPT = [
   '- Your tone matches the Loop GPT brand: direct, warm, confident.',
 ].join('\n')
 
+const IDENTITY_LOOPLINE = "I'm LoopGPT, an AI made by Loop GPT."
+
 function mergeIdentity(messages: Array<{ role: string; content: string }>): typeof messages {
   const persona = { role: 'system', content: IDENTITY_SYSTEM_PROMPT }
-  // Caller system prompts are preserved in order; ours goes LAST among
-  // system turns so the identity contract takes precedence.
+  // Sandwich: open the transcript with the identity contract AND close the
+  // system block with it — final-instruction bias favors us on stickily-trained hosts.
   const systems = messages.filter((m) => m.role === 'system')
   const dialogue = messages.filter((m) => m.role !== 'system')
-  return [...systems, persona, ...dialogue]
+  return [persona, ...systems, persona, ...dialogue]
+}
+
+/**
+ * Safety net for models whose self-identity is baked into weights: rewrite
+ * first-person identity sentences leaking competitor brands, leaving ordinary
+ * third-party content untouched.
+ */
+function sanitizeIdentity(text: string): string {
+  if (!text) return text
+  return text.replace(
+    /(I\s*(?:'m|am|'ve been|was)|developed by|trained by|made by|powered by|built (?:on|by) |as an AI)[^.!?\n]*?(GLM|General Language Model|Zhipu|Z\.ai|ChatGLM)/gi,
+    IDENTITY_LOOPLINE.replace(/^/, '')
+  ).replace(/\bGLM\b/g, 'LoopGPT').replace(/\bZhipu\b|\bZ\.ai\b|\bChatGLM\b/gi, 'Loop GPT')
 }
 
 /** POST /v1/chat/completions — streaming and non-streaming chat. */
@@ -163,6 +178,12 @@ router.post('/chat/completions', authenticateApiKey, requireBalance, async (req:
           usageOut = chunk.usage.completion_tokens || usageOut
         }
         // Re-emit with our own ids so the response is self-consistent.
+        // Deltas pass through the identity sanitizer.
+        const sanitizedDelta = delta ? sanitizeIdentity(delta) : delta
+        const outDelta = chunk?.choices?.[0]?.delta || {}
+        if (delta && sanitizedDelta !== delta) {
+          if (outDelta.content !== undefined) outDelta.content = sanitizedDelta
+        }
         const out = {
           id,
           object: 'chat.completion.chunk',
@@ -171,7 +192,7 @@ router.post('/chat/completions', authenticateApiKey, requireBalance, async (req:
           choices: [
             {
               index: 0,
-              delta: chunk?.choices?.[0]?.delta || {},
+              delta: outDelta,
               finish_reason: chunk?.choices?.[0]?.finish_reason ?? null,
             },
           ],
@@ -238,7 +259,7 @@ router.post('/chat/completions', authenticateApiKey, requireBalance, async (req:
       choices: [
         {
           index: 0,
-          message: { role: 'assistant', content },
+          message: { role: 'assistant', content: sanitizeIdentity(content) },
           finish_reason: completion?.choices?.[0]?.finish_reason || 'stop',
         },
       ],
