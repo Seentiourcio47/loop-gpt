@@ -1,6 +1,14 @@
 # Loop GPT — Joint Mobile Delivery Plan (Android APK + iOS, tested together)
 
-Status: PLAN v1 (2026-09-05) · Owner: Chris + ops agents
+Status: **EXECUTION STAGE 1 DONE (2026-09-05)** — Capacitor shells built for BOTH platforms:
+- `mobile/app` workspace: `cyou.loopgpt.app` / "Loop GPT", server bound to `https://loop-gpt.cyou`
+  → **the APK/IPA render the exact production Aurora web app — UI parity across web/Android/iOS by construction.**
+- 97 branded assets stamped (iridescent sparkle icon + dark splash, android 87 / ios 10) via capacitor-assets.
+- **Debug APK built locally (Java 21 + Gradle 8.7 + SDK 34/35): `mobile/LoopGPT-debug.apk` (~4.5 MB) — sideloadable now.**
+- iOS scaffold + assets committed (`mobile/app/ios`, bundle id set) — IPA archive requires macOS/Xcode next stage.
+- Commit `7e9e310`. UI sync = automatic thereafter: any web deploy reflects in shells instantly (live-URL binding).
+
+Stage 2 candidates: signed release APK (Play `.aab`), splash-screen/image-viewer plugins, push scaffolding, TestFlight lane.
 North star: **one codebase, both stores, one shared QA pipeline**, shipping from the
 existing Next.js product instead of a costly rewrite.
 
