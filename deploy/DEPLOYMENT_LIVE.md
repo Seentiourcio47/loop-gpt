@@ -291,7 +291,21 @@ Old `api`/`app` → `cfargotunnel.com` grey records REPLACED (they were globally
 
 **Live proofs**: apex+`/chat`+`/developers` 200 · `app` 200 · `chat /api/config` 200 `appTitle:"Loop GPT"` · branded `/v1/models` 6 models · **BYOK regression gate DOUBLE-PASS through branded domains** (register→mint→attach→`AGENT-OK-BYOK`→$0.999974 drain).
 
-**cf-tunnel service** is now fully redundant (no DNS references the tunnel) — kept as hot spare; delete via Railway dashboard (svc `cf-tunnel`) or `railway delete` when comfortable. Home-PC connector + autostart: already removed.
+**cf-tunnel service** is now fully redundant (no DNS references the tunnel) — kept as hot spare; delete via Railway dashboard (svc `cf-tunnel`) or `railway delete` when comfortable.
+
+---
+
+## BYOK rollback → zero-friction pool-key (2026-09-05, commit 0a7c21c)
+
+User-facing symptoms: "OpenAI models" shown in picker; "No key found. Please provide the key again." on send.
+Causes: (a) strict BYOK (`apiKey: user_provided`) demanded a per-user key paste for every visitor; (b) leftover `OPENAI_API_KEY`/`OPENAI_BASE_URL` envs rendered a phantom native-openAI endpoint.
+
+Resolution:
+- yaml: both LoopGPT endpoints back to the shared pool `sk-loop-…` key → chat works with ZERO setup.
+- Removed the two phantom env vars from the librechat service.
+- Proof: fresh-user harness (no key attach) — bare + MCP-tooled agents both stream `AGENT-OK`; `/api/endpoints` lists ONLY agents/LoopGPTStd/LoopGPTLarge with keyRequired=false.
+- Strict per-user metering remains available in one line (`apiKey: "user_provided"`) if/when consumer-onboarding (guided key paste) is built; `/developers` portal + per-user keys unaffected on the backend side.
+- Railpack snapshot-cache re-corruption seen again on deploy — cured by Dockerfile comment-bump rebuild (now a known workaround). Home-PC connector + autostart: already removed.
 
 ---
 
