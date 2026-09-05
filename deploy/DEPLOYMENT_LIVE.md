@@ -250,6 +250,8 @@ nslookup app.loop-gpt.cyou
 - Agent runs fixed: LC container cannot reach `backend.railway.internal:3001` (private-network anomaly; RAG internal works) → yaml baseURL = backend public Railway URL (`https://backend-production-4d0d6.up.railway.app/v1`). Verified agents stream text with + without MCP tools (bare & tooled runs both return verbatim test tokens).
 - Backend Dockerfile: CMD hardened (`sh ./docker-entrypoint.sh`) + entrypoint LF-normalized (CRLF killed exec).
 - Known quirk: `railway up` backend build context must be wrapped as `<tmp>/backend/` (rootDirectory=/backend meta).
+- **BYOK live (2026-09-05)**: both custom endpoints now `apiKey: "user_provided"` — each LibreChat user pastes their own `sk-loop-…` key (from `/developers` portal) via Settings→Endpoints (stored as JSON `{apiKey}`). Acceptance: fresh user, fresh key, agent streams `AGENT-OK-BYOK`, user balance drains $1.00→$0.999974 (`/api/developer/overview` proof). Stored value must be JSON (`{apiKey}`), raw strings fail `invalid_user_key`.
+- **Netprobe verdict**: `backend.railway.internal` resolves (10.x + fd12::) but :3001 answers ECONNREFUSED — backend service has no private-network port entry for 3001 (Railway networking setting). Until added, LC↔backend and RAG↔backend stay on public Railway URLs (working, fast). LC↔RAG private :8000 works (registered).
 
 ---
 
