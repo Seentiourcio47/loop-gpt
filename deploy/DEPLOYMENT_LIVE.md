@@ -276,5 +276,24 @@ Apex stays as-is. Stray record `chat.loop-gpt.cyou.sendrise.online` (wrong-zone 
 
 ---
 
+## DNS CUTOVER EXECUTED (2026-09-05) — brand fully live via direct Railway
+
+Cloudflare API (account-scoped token stored at `~/.cloudflared/cf-api-token.txt`, OUTSIDE the repo) performed the surgery on zone `loop-gpt.cyou`:
+
+| Host | Final record | Railway target | Status |
+|---|---|---|---|
+| `loop-gpt.cyou` | CNAME proxied (unchanged) | `z8n20ytb.up.railway.app` | serving since before |
+| `api.loop-gpt.cyou` | CNAME grey | `6nzrbghb.up.railway.app` | Verified + cert **VALID** |
+| `app.loop-gpt.cyou` | CNAME grey | `qe9xizva.up.railway.app` | Verified + cert **VALID** |
+| `chat.loop-gpt.cyou` | CNAME grey | `x46wia9t.up.railway.app` | Verified + cert **VALID** |
+
+Old `api`/`app` → `cfargotunnel.com` grey records REPLACED (they were globally broken: cfargotunnel resolves to private fd10:: when unproxied). All four `_railway-verify` TXTs in place; mail cluster (MX/SPF/DKIM/DMARC) untouched. `www` intentionally absent (no-www policy; frontend is at hobby-plan 2-domain cap — add a Cloudflare Redirect Rule www→apex for free if wanted).
+
+**Live proofs**: apex+`/chat`+`/developers` 200 · `app` 200 · `chat /api/config` 200 `appTitle:"Loop GPT"` · branded `/v1/models` 6 models · **BYOK regression gate DOUBLE-PASS through branded domains** (register→mint→attach→`AGENT-OK-BYOK`→$0.999974 drain).
+
+**cf-tunnel service** is now fully redundant (no DNS references the tunnel) — kept as hot spare; delete via Railway dashboard (svc `cf-tunnel`) or `railway delete` when comfortable. Home-PC connector + autostart: already removed.
+
+---
+
 **Last Updated**: 2026-08-20 03:31 UTC  
 **Deployment Engineer**: Automated Deployment System
