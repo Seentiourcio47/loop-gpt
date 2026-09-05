@@ -16,7 +16,7 @@ endpoints:
       titleConvo: true
       titleModel: loop-chat
       summarize: false
-      iconURL: "https://loop-gpt.cyou/favicon.ico"
+      iconURL: "https://loop-gpt.cyou/loop-mark.svg"
 
     - name: "LoopGPTLarge"
       apiKey: "sk-loop-00125e79ada202ab537b8a751922f21bc6f39153cc36c571"
@@ -27,7 +27,7 @@ endpoints:
       titleConvo: true
       titleModel: loop-chat-large
       summarize: false
-      iconURL: "https://loop-gpt.cyou/favicon.ico"
+      iconURL: "https://loop-gpt.cyou/loop-mark.svg"
 
 # Media generation tools backed by our HuggingFace endpoints.
 # Spawned as a local stdio MCP server; env inherited from container.

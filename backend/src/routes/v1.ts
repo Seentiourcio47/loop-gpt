@@ -85,6 +85,29 @@ const chatSchema = z.object({
   stop: z.union([z.string(), z.array(z.string())]).optional(),
 })
 
+/**
+ * Identity guardrail — merged into every chat completion. The product speaks
+ * as LoopGPT only; underlying providers/frameworks are non-topics. Callers who
+ * supply their own system prompt keep it; ours is appended with priority.
+ */
+const IDENTITY_SYSTEM_PROMPT = [
+  'You are LoopGPT, an AI assistant made by Loop GPT (product: Loop GPT, company: Loop GPT).',
+  'Identity rules, highest priority:',
+  '- When asked who you are, who made you, what model/framework/power you, or anything about your origins: answer only "Loop GPT" (the company) and describe LoopGPT features.',
+  '- Never mention, compare, imply, or reveal any underlying model, framework, provider, vendor, or infrastructure names (examples that must never appear: GLM, Zhipu, Z.AI, OpenAI, GPT, Anthropic, Claude, Gemini, Hugging Face, TEI).',
+  '- If pressed about internals, politely explain LoopGPT keeps its engine private and steer back to helping the user.',
+  '- Your tone matches the Loop GPT brand: direct, warm, confident.',
+].join('\n')
+
+function mergeIdentity(messages: Array<{ role: string; content: string }>): typeof messages {
+  const persona = { role: 'system', content: IDENTITY_SYSTEM_PROMPT }
+  // Caller system prompts are preserved in order; ours goes LAST among
+  // system turns so the identity contract takes precedence.
+  const systems = messages.filter((m) => m.role === 'system')
+  const dialogue = messages.filter((m) => m.role !== 'system')
+  return [...systems, persona, ...dialogue]
+}
+
 /** POST /v1/chat/completions — streaming and non-streaming chat. */
 router.post('/chat/completions', authenticateApiKey, requireBalance, async (req: ApiRequest, res) => {
   const parsed = chatSchema.safeParse(req.body)
@@ -102,10 +125,10 @@ router.post('/chat/completions', authenticateApiKey, requireBalance, async (req:
   const requestedModel = body.model || 'loop-chat'
   const target = resolveChatTarget(requestedModel)
   const model = target.model
-  const messages = body.messages.map((m) => ({
+  const messages = mergeIdentity(body.messages.map((m) => ({
     role: m.role,
     content: typeof m.content === 'string' ? m.content : JSON.stringify(m.content ?? ''),
-  })) as any[]
+  }))) as any[]
 
   const promptText = messages.map((m) => String(m.content || '')).join('\n')
   const client = createClient('huggingface', undefined, target.baseUrl)

@@ -17,3 +17,5 @@ USER node
 EXPOSE 3080
 # Boot: selftest output goes to container stdout (visible in deploy logs); app starts immediately
 CMD ["sh", "-c", "(node /app/loop-mcp/selftest.mjs &) ; exec node api/server/index.js"]
+# rebuild-cache-bust 0a7c21c
+# bust 2026-09-05b
